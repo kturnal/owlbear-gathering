@@ -37,8 +37,9 @@ Every number and name is in [`rules.json`](rules.json): the bands, the die sizes
 the professions with their three material names. A new profession is one more entry in
 `professions`. **The herbalism material names are placeholders** — replace them with the DM's.
 
-A change goes live for everyone a minute or so after it is pushed to `main`; reopen the popover to
-pick it up.
+A change goes live a minute or so after it is pushed to `main`, but browsers may keep the old copy
+for up to 10 minutes (GitHub Pages' cache). `rules.json` is always re-checked. After changing
+`app.js` or `style.css`, bump the `?v=` on them in `index.html`.
 
 ## Where the numbers are kept
 

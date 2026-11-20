@@ -5,25 +5,21 @@
 // that player's own key, so they survive between sessions and everyone sees them. Opened on its own
 // in a browser, the page works the same but keeps everything in localStorage.
 
+// The SDK must load before anything else runs. Owlbear sends its one "ready" message as the popover
+// loads and never repeats it; an SDK that starts listening later (after an await) waits forever.
+import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 import { cryptoRandomInt, resolveGather, rollGather } from "./gathering.js";
 
 const PLUGIN = "app.wow-table.gathering";
 const PLAYER_PREFIX = `${PLUGIN}/player/`;
 const CHANNEL = `${PLUGIN}/gather`;
-const SDK_URL = "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 // Room metadata is capped at 16 kB and shared with every other extension, so keep the log short.
 const LOG_PER_PLAYER = 5;
 const LOG_SHOWN = 8;
 
-const rules = await (await fetch("./rules.json")).json();
+const rules = await (await fetch("./rules.json", { cache: "no-cache" })).json();
 
-let OBR = null;
-try {
-  OBR = (await import(SDK_URL)).default;
-} catch {
-  // Offline or blocked: carry on without Owlbear.
-}
-const inOwlbear = Boolean(OBR?.isAvailable);
+const inOwlbear = OBR.isAvailable;
 const embedded = window.self !== window.top;
 
 const me = { id: "local", name: "You", role: "GM" };
