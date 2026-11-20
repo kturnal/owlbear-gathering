@@ -323,30 +323,51 @@ checkInput.addEventListener("keydown", (event) => {
 });
 skillInput.addEventListener("change", () => setSkill(me.id, skillInput));
 
+// Anything that goes wrong shows in the status line: inside Owlbear there is no console to look at.
+window.addEventListener("error", (event) => setStatus(`Error: ${event.message}`));
+window.addEventListener("unhandledrejection", (event) =>
+  setStatus(`Error: ${event.reason?.message ?? event.reason}`),
+);
+
 if (inOwlbear) {
   document.body.classList.add("in-owlbear");
+  // Draw straight away; the room's numbers fill in once Owlbear answers.
+  players = { [me.id]: asRecord(null) };
+  $("gather").disabled = true;
+  render();
+  setStatus("Connecting to Owlbear…");
   OBR.onReady(async () => {
-    [me.id, me.name, me.role] = await Promise.all([
-      OBR.player.getId(),
-      OBR.player.getName(),
-      OBR.player.getRole(),
-    ]);
-    applyTheme(await OBR.theme.getTheme());
-    OBR.theme.onChange(applyTheme);
-    OBR.player.onChange((player) => {
-      me.name = player.name;
-      me.role = player.role;
-      render();
-    });
-    OBR.broadcast.onMessage(CHANNEL, (event) => {
-      const text = String(event.data?.text ?? "").slice(0, 300);
-      if (text) OBR.notification.show(text, "INFO");
-    });
-    readRoom(await OBR.room.getMetadata());
-    OBR.room.onMetadataChange(readRoom);
+    try {
+      await connect();
+      $("gather").disabled = false;
+      setStatus("");
+    } catch (error) {
+      setStatus(`Couldn't connect to Owlbear: ${error?.message ?? error}`);
+    }
   });
 } else {
   players = { [me.id]: asRecord(readLocal(backupKey())) };
   if (embedded) setStatus("Couldn't reach Owlbear. Results stay on this device.");
   render();
+}
+
+async function connect() {
+  [me.id, me.name, me.role] = await Promise.all([
+    OBR.player.getId(),
+    OBR.player.getName(),
+    OBR.player.getRole(),
+  ]);
+  applyTheme(await OBR.theme.getTheme());
+  OBR.theme.onChange(applyTheme);
+  OBR.player.onChange((player) => {
+    me.name = player.name;
+    me.role = player.role;
+    render();
+  });
+  OBR.broadcast.onMessage(CHANNEL, (event) => {
+    const text = String(event.data?.text ?? "").slice(0, 300);
+    if (text) OBR.notification.show(text, "INFO");
+  });
+  readRoom(await OBR.room.getMetadata());
+  OBR.room.onMetadataChange(readRoom);
 }

@@ -272,3 +272,8 @@ ol {
   color: var(--text-soft);
   font-variant-numeric: tabular-nums;
 }
+
+#gather:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
