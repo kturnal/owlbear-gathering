@@ -1,0 +1,14 @@
+{
+  "name": "Gathering",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "Roll a gathering attempt for mining or herbalism and share the haul with the table.",
+  "icon": "/owlbear-gathering/icon.svg",
+  "action": {
+    "title": "Gathering",
+    "icon": "/owlbear-gathering/icon.svg",
+    "popover": "/owlbear-gathering/index.html",
+    "height": 580,
+    "width": 340
+  }
+}

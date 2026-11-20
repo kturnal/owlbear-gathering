@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gathering</title>
+    <link rel="icon" href="./icon.svg" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <div id="professions" class="segmented" role="radiogroup" aria-label="Profession"></div>
+
+      <section class="controls">
+        <label class="field">
+          <span id="skill-label">Skill</span>
+          <input id="skill" type="number" inputmode="numeric" min="0" step="1" />
+        </label>
+        <label class="field">
+          <span>d100 <small>(optional)</small></span>
+          <input id="check" type="number" inputmode="numeric" min="1" max="100" step="1" placeholder="roll for me" />
+        </label>
+        <button id="gather" type="button">Gather</button>
+      </section>
+      <p id="status" role="status"></p>
+
+      <section id="result" hidden aria-live="polite">
+        <div class="haul">
+          <div><strong id="primary-count">0</strong><span id="primary-name"></span></div>
+          <div><strong id="secondary-count">0</strong><span id="secondary-name"></span></div>
+          <div><strong id="rare-count">0</strong><span id="rare-name"></span></div>
+        </div>
+        <p id="result-dice"></p>
+        <p id="result-skill"></p>
+      </section>
+
+      <section id="party" hidden>
+        <h2>Party skill</h2>
+        <ul id="party-list"></ul>
+      </section>
+
+      <section id="log" hidden>
+        <h2>Recent gathers</h2>
+        <ol id="log-list"></ol>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

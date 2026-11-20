@@ -1,0 +1,74 @@
+# Gathering — an Owlbear Rodeo extension
+
+One button for a gathering attempt (mining, herbalism): it rolls the d100, rolls the d4s that roll
+earns, and shows the haul and the new skill to the whole table.
+
+## Install
+
+In Owlbear Rodeo, add it as a custom extension with this manifest URL, then enable it for the room:
+
+```
+https://kturnal.github.io/owlbear-gathering/manifest.json
+```
+
+The **Gathering** button then appears at the top left of the room.
+
+## The rules
+
+| d100 | Value |
+|---|---|
+| 1–20 | 1d4 |
+| 21–40 | 2d4 |
+| 41–60 | 3d4 |
+| 61–80 | 4d4 |
+| 81–100 | 5d4 |
+
+- **Primary** (stone) = Value
+- **Secondary** (ore) = Value ÷ 2, rounded up
+- **Rare** (gems) = Value − 14, never below 0 — so only on a Value of 15 or more
+- **Skill** rises by Value
+
+Rolled the d100 in Owlbear's own dice tray? Type it into the d100 box and only the d4s are rolled
+here; the log marks it "typed in".
+
+## Changing the rules
+
+Every number and name is in [`rules.json`](rules.json): the bands, the die sizes, each formula, and
+the professions with their three material names. A new profession is one more entry in
+`professions`. **The herbalism material names are placeholders** — replace them with the DM's.
+
+A change goes live for everyone a minute or so after it is pushed to `main`; reopen the popover to
+pick it up.
+
+## Where the numbers are kept
+
+Each player's skill and last five gathers sit in the **room's** metadata under that player's own key,
+so they follow the room between sessions and everyone sees them. A copy stays in the browser as a
+backup. The GM can correct anyone's skill from the party list; players edit only their own.
+
+## Files
+
+| | |
+|---|---|
+| `manifest.json` | What Owlbear reads to install the extension |
+| `index.html`, `style.css`, `app.js` | The popover |
+| `gathering.js` | The rules as pure functions |
+| `rules.json` | The numbers |
+| `gathering.test.mjs` | Tests: `node --test gathering.test.mjs` (also run by GitHub Actions) |
+| `serve.mjs` | Local server for trying changes before pushing |
+
+There is no build step: GitHub Pages serves this repository's `main` branch as it is.
+
+## Try a change locally
+
+```bash
+node serve.mjs
+```
+
+Open <http://localhost:5173/owlbear-gathering/> for the page on its own (it keeps its numbers in the
+browser), or add `http://localhost:5173/owlbear-gathering/manifest.json` as a custom extension in a
+test room. That only works in your own browser.
+
+The paths in `manifest.json` start with `/owlbear-gathering/` because that is where GitHub Pages
+serves this repository. Hosting it elsewhere, or renaming the repository, means changing those three
+paths to match.

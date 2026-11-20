@@ -1,0 +1,274 @@
+/* Colours are variables so the page can take on Owlbear's own theme (see applyTheme in app.js).
+   Opened on its own, outside Owlbear, it falls back to these and follows the system light/dark. */
+:root {
+  color-scheme: light dark;
+  --page: #f4f1ea;
+  --raised: rgba(0, 0, 0, 0.05);
+  --line: rgba(0, 0, 0, 0.14);
+  --text: #23201b;
+  --text-soft: #6a645a;
+  --accent: #7a5cc4;
+  --accent-text: #ffffff;
+  --warn: #b3541e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #22242c;
+    --raised: rgba(255, 255, 255, 0.07);
+    --line: rgba(255, 255, 255, 0.16);
+    --text: #f1eee8;
+    --text-soft: #a9a59c;
+    --accent: #bb99ff;
+    --accent-text: #1d1b22;
+    --warn: #f0a070;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Inside Owlbear the popover supplies its own surface. */
+body.in-owlbear {
+  background: transparent;
+}
+
+main {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 12px 14px 16px;
+}
+
+h2 {
+  margin: 18px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+p {
+  margin: 0;
+}
+
+small {
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+input,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+  font-variant-numeric: tabular-nums;
+}
+
+input::placeholder {
+  color: var(--text-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Profession switch */
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--raised);
+}
+
+.segmented button {
+  flex: 1;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.segmented button[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* Skill, d100, Gather */
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.field input {
+  color: var(--text);
+  font-size: 15px;
+}
+
+#gather {
+  grid-column: 1 / -1;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#gather:active {
+  transform: translateY(1px);
+}
+
+#status {
+  min-height: 18px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--warn);
+}
+
+/* The haul */
+#result {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--raised);
+}
+
+.haul {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.haul div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.haul strong {
+  font-size: 28px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.haul span {
+  font-size: 12px;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.haul .none strong {
+  color: var(--text-soft);
+  font-weight: 400;
+}
+
+#result-dice,
+#result-skill {
+  margin-top: 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#result-dice {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+/* Party and log */
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#party-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+#party-list .name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#party-list .value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+#party-list input {
+  width: 76px;
+  height: 28px;
+  text-align: right;
+}
+
+#log-list li {
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+
+#log-list li:first-child {
+  border-top: 0;
+}
+
+#log-list .who {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+}
+
+#log-list .when {
+  flex: none;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+#log-list .detail {
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
