@@ -99,6 +99,10 @@ input::placeholder {
   gap: 10px;
 }
 
+.field[hidden] {
+  display: none;
+}
+
 .field.wide {
   grid-column: 1 / -1;
 }

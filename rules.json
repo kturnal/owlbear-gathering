@@ -1,5 +1,5 @@
 {
-  "rollCheckForYou": false,
+  "typeInCheck": false,
   "checkDie": 100,
   "yieldDie": 4,
   "bands": [

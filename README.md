@@ -1,7 +1,7 @@
 # Gathering — an Owlbear Rodeo extension
 
-A gathering attempt for mining, herbalism or fishing: roll the d100 in Owlbear, type it in, and the
-extension rolls the d4s that roll earns and shows the haul and the new skill to the whole table.
+A gathering attempt for mining, herbalism or fishing in one button: Gather rolls the d100 and the d4s
+it earns, and shows the haul and the new skill to the whole table.
 
 ## Install
 
@@ -36,7 +36,8 @@ back the skill it added. Press it again to undo the one before.
 Every number and name is in [`rules.json`](rules.json): the bands, the die sizes, each formula, and
 the professions with their three material names. A new profession is one more entry in
 `professions`. **The herbalism and fishing material names are placeholders** — replace them with the
-DM's. Set `rollCheckForYou` to `true` to let the extension roll the d100 when the box is left empty.
+DM's. Set `typeInCheck` to `true` to show a d100 box, for a d100 rolled in Owlbear's own dice tray;
+left empty, Gather still rolls it.
 
 A change goes live a minute or so after it is pushed to `main`, but browsers may keep the old copy
 for up to 10 minutes (GitHub Pages' cache). `rules.json` is always re-checked. After changing

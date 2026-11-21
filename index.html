@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Gathering</title>
     <link rel="icon" href="./icon.svg" />
-    <link rel="stylesheet" href="./style.css?v=4" />
+    <link rel="stylesheet" href="./style.css?v=5" />
   </head>
   <body>
     <main>
       <section class="controls">
-        <label class="field wide">
+        <label id="profession-field" class="field">
           <span>Profession</span>
           <select id="profession"></select>
         </label>
@@ -18,7 +18,7 @@
           <span>Your skill</span>
           <input id="skill" type="number" inputmode="numeric" min="0" step="1" />
         </label>
-        <label class="field">
+        <label id="check-field" class="field" hidden>
           <span id="check-label">d100</span>
           <input id="check" type="number" inputmode="numeric" min="1" max="100" step="1" />
         </label>
@@ -46,6 +46,6 @@
         <ol id="log-list"></ol>
       </section>
     </main>
-    <script type="module" src="./app.js?v=4"></script>
+    <script type="module" src="./app.js?v=5"></script>
   </body>
 </html>

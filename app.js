@@ -118,7 +118,7 @@ const nameOf = (id) => (id === me.id ? me.name : players[id]?.name || "Someone")
 
 /** "d100 57 → 2 + 4 + 1 = 7 · 7 Stone, 4 Ore, 0 Gems" */
 function describe(profession, result, typedIn) {
-  const check = `d${rules.checkDie} ${result.check}${typedIn && rules.rollCheckForYou ? " (typed in)" : ""}`;
+  const check = `d${rules.checkDie} ${result.check}${typedIn ? " (typed in)" : ""}`;
   const dice = result.dice.length > 1 ? `${result.dice.join(" + ")} = ${result.value}` : `${result.value}`;
   const haul = `${result.primary} ${profession.primary}, ${result.secondary} ${profession.secondary}, ${result.rare} ${profession.rare}`;
   return `${check} → ${result.dice.length}d${rules.yieldDie}: ${dice} · ${haul}`;
@@ -138,16 +138,13 @@ function wholeNumber(text, min, max = Number.MAX_SAFE_INTEGER) {
 
 async function gather() {
   const profession = currentProfession();
-  const typed = checkInput.value.trim();
+  // The d100 box only shows when rules.json's typeInCheck is on; otherwise Gather rolls everything.
+  const typed = rules.typeInCheck ? checkInput.value.trim() : "";
   let check;
-  if (typed !== "" || !rules.rollCheckForYou) {
+  if (typed !== "") {
     check = wholeNumber(typed, 1, rules.checkDie);
     if (check === null) {
-      setStatus(
-        typed === ""
-          ? `Roll the d${rules.checkDie} in Owlbear first, then type it in.`
-          : `The d${rules.checkDie} must be a whole number from 1 to ${rules.checkDie}.`,
-      );
+      setStatus(`The d${rules.checkDie} must be a whole number from 1 to ${rules.checkDie}.`);
       checkInput.focus();
       return;
     }
@@ -347,12 +344,11 @@ professionSelect.addEventListener("change", () => {
 });
 
 checkInput.max = rules.checkDie;
-if (rules.rollCheckForYou) {
-  checkInput.placeholder = "roll for me";
-  $("check-label").append(" ", el("small", "", "(optional)"));
-} else {
-  checkInput.placeholder = "your roll";
-}
+checkInput.placeholder = "roll for me";
+$("check-label").append(" ", el("small", "", "(optional)"));
+// Without the d100 box, profession and skill share one row.
+$("check-field").hidden = !rules.typeInCheck;
+$("profession-field").classList.toggle("wide", rules.typeInCheck);
 $("gather").addEventListener("click", gather);
 checkInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") gather();

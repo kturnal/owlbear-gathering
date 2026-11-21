@@ -130,6 +130,6 @@ test("an unreadable entry is removed without touching the skill", () => {
   assert.equal(undone.record.log.length, 0);
 });
 
-test("rolling the d100 for the player is a switch in rules.json", () => {
-  assert.equal(typeof rules.rollCheckForYou, "boolean");
+test("typing in a d100 rolled elsewhere is a switch in rules.json, off at this table", () => {
+  assert.equal(rules.typeInCheck, false);
 });
