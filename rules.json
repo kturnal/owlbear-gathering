@@ -1,19 +1,51 @@
 {
+  "rollCheckForYou": false,
   "checkDie": 100,
   "yieldDie": 4,
   "bands": [
-    { "upTo": 20, "dice": 1 },
-    { "upTo": 40, "dice": 2 },
-    { "upTo": 60, "dice": 3 },
-    { "upTo": 80, "dice": 4 },
-    { "upTo": 100, "dice": 5 }
+    {
+      "upTo": 20,
+      "dice": 1
+    },
+    {
+      "upTo": 40,
+      "dice": 2
+    },
+    {
+      "upTo": 60,
+      "dice": 3
+    },
+    {
+      "upTo": 80,
+      "dice": 4
+    },
+    {
+      "upTo": 100,
+      "dice": 5
+    }
   ],
   "yields": {
-    "primary": { "divideBy": 1, "round": "up", "minus": 0 },
-    "secondary": { "divideBy": 2, "round": "up", "minus": 0 },
-    "rare": { "divideBy": 1, "round": "up", "minus": 14 }
+    "primary": {
+      "divideBy": 1,
+      "round": "up",
+      "minus": 0
+    },
+    "secondary": {
+      "divideBy": 2,
+      "round": "up",
+      "minus": 0
+    },
+    "rare": {
+      "divideBy": 1,
+      "round": "up",
+      "minus": 14
+    }
   },
-  "skillIncrease": { "divideBy": 1, "round": "up", "minus": 0 },
+  "skillIncrease": {
+    "divideBy": 1,
+    "round": "up",
+    "minus": 0
+  },
   "professions": [
     {
       "id": "mining",
@@ -28,6 +60,13 @@
       "primary": "Common herbs",
       "secondary": "Uncommon herbs",
       "rare": "Rare herbs"
+    },
+    {
+      "id": "fishing",
+      "name": "Fishing",
+      "primary": "Common fish",
+      "secondary": "Uncommon fish",
+      "rare": "Rare catch"
     }
   ]
 }

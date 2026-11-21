@@ -8,7 +8,7 @@
 // The SDK must load before anything else runs. Owlbear sends its one "ready" message as the popover
 // loads and never repeats it; an SDK that starts listening later (after an await) waits forever.
 import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
-import { cryptoRandomInt, resolveGather, rollGather } from "./gathering.js";
+import { cryptoRandomInt, resolveGather, rollGather, undoLatest } from "./gathering.js";
 
 const PLUGIN = "app.wow-table.gathering";
 const PLAYER_PREFIX = `${PLUGIN}/player/`;
@@ -23,7 +23,7 @@ const inOwlbear = OBR.isAvailable;
 const embedded = window.self !== window.top;
 
 const me = { id: "local", name: "You", role: "GM" };
-/** id -> { name, skills: { professionId: number }, log: [{ t, p, c, d, s, m }] } */
+/** id -> { name, skills: { professionId: number }, log: [{ t, p, c, d, s, i, m }] } */
 let players = {};
 let professionId = readLocal(`${PLUGIN}/profession`);
 if (!rules.professions.some((profession) => profession.id === professionId)) {
@@ -33,7 +33,7 @@ let lastGather = null;
 let savingMine = 0;
 
 const $ = (id) => document.getElementById(id);
-const tabs = $("professions");
+const professionSelect = $("profession");
 const skillInput = $("skill");
 const checkInput = $("check");
 
@@ -118,7 +118,7 @@ const nameOf = (id) => (id === me.id ? me.name : players[id]?.name || "Someone")
 
 /** "d100 57 → 2 + 4 + 1 = 7 · 7 Stone, 4 Ore, 0 Gems" */
 function describe(profession, result, typedIn) {
-  const check = `d${rules.checkDie} ${result.check}${typedIn ? " (typed in)" : ""}`;
+  const check = `d${rules.checkDie} ${result.check}${typedIn && rules.rollCheckForYou ? " (typed in)" : ""}`;
   const dice = result.dice.length > 1 ? `${result.dice.join(" + ")} = ${result.value}` : `${result.value}`;
   const haul = `${result.primary} ${profession.primary}, ${result.secondary} ${profession.secondary}, ${result.rare} ${profession.rare}`;
   return `${check} → ${result.dice.length}d${rules.yieldDie}: ${dice} · ${haul}`;
@@ -140,10 +140,14 @@ async function gather() {
   const profession = currentProfession();
   const typed = checkInput.value.trim();
   let check;
-  if (typed !== "") {
+  if (typed !== "" || !rules.rollCheckForYou) {
     check = wholeNumber(typed, 1, rules.checkDie);
     if (check === null) {
-      setStatus(`The d${rules.checkDie} must be a whole number from 1 to ${rules.checkDie}.`);
+      setStatus(
+        typed === ""
+          ? `Roll the d${rules.checkDie} in Owlbear first, then type it in.`
+          : `The d${rules.checkDie} must be a whole number from 1 to ${rules.checkDie}.`,
+      );
       checkInput.focus();
       return;
     }
@@ -155,16 +159,42 @@ async function gather() {
   const before = skillOf(me.id, profession);
   const after = before + result.skillIncrease;
   mine.skills[profession.id] = after;
-  const entry = { t: Date.now(), p: profession.id, c: result.check, d: result.dice, s: after };
+  const entry = {
+    t: Date.now(),
+    p: profession.id,
+    c: result.check,
+    d: result.dice,
+    s: after,
+    i: result.skillIncrease,
+  };
   if (typed !== "") entry.m = 1;
   mine.log = [entry, ...mine.log].slice(0, LOG_PER_PLAYER);
-  lastGather = { professionId: profession.id, result, before, after, typedIn: typed !== "" };
+  lastGather = { t: entry.t, professionId: profession.id, result, before, after, typedIn: typed !== "" };
   checkInput.value = "";
   render();
 
   await save(me.id);
   if (inOwlbear) {
     const text = `${me.name} · ${profession.name} · ${describe(profession, result, typed !== "")} · skill ${after}`;
+    OBR.broadcast.sendMessage(CHANNEL, { text }, { destination: "REMOTE" }).catch(() => {});
+  }
+}
+
+/** Take back my latest gather, for a Gather pressed by mistake. */
+async function undo() {
+  const undone = undoLatest(rules, players[me.id]);
+  if (!undone) return;
+  const profession = professionById(undone.entry.p);
+  players[me.id] = { ...players[me.id], ...undone.record };
+  if (lastGather?.t === undone.entry.t) lastGather = null;
+  const name = profession?.name ?? "gather";
+  const skill = players[me.id].skills[undone.entry.p] ?? 0;
+  setStatus(`Undid your ${when(undone.entry.t)} ${name} gather. Skill back to ${skill}.`);
+  render();
+
+  await save(me.id);
+  if (inOwlbear) {
+    const text = `${me.name} undid a ${name} gather (d${rules.checkDie} ${undone.entry.c}) · skill ${skill}`;
     OBR.broadcast.sendMessage(CHANNEL, { text }, { destination: "REMOTE" }).catch(() => {});
   }
 }
@@ -250,6 +280,7 @@ function renderLog() {
     .sort((a, b) => b.entry.t - a.entry.t)
     .slice(0, LOG_SHOWN);
   const rows = [];
+  const myLatest = players[me.id]?.log[0];
   for (const { id, entry } of entries) {
     const profession = professionById(entry.p);
     if (!profession) continue;
@@ -264,6 +295,13 @@ function renderLog() {
     who.append(el("span", "", `${nameOf(id)} · ${profession.name}`), el("span", "when", when(entry.t)));
     const skill = Number.isInteger(entry.s) ? ` · skill ${entry.s}` : "";
     row.append(who, el("div", "detail", describe(profession, result, Boolean(entry.m)) + skill));
+    if (id === me.id && entry === myLatest) {
+      const button = el("button", "undo", "Undo");
+      button.type = "button";
+      button.title = "Remove this gather and take back the skill it added";
+      button.addEventListener("click", undo);
+      row.append(button);
+    }
     rows.push(row);
   }
   $("log").hidden = rows.length === 0;
@@ -272,10 +310,8 @@ function renderLog() {
 
 function render() {
   const profession = currentProfession();
-  for (const button of tabs.children) {
-    button.setAttribute("aria-checked", String(button.dataset.id === profession.id));
-  }
-  $("skill-label").textContent = `Your ${profession.name} skill`;
+  professionSelect.value = profession.id;
+  $("party-title").textContent = `Party ${profession.name} skill`;
   if (document.activeElement !== skillInput) skillInput.value = skillOf(me.id, profession);
   renderResult();
   renderParty();
@@ -298,21 +334,25 @@ function applyTheme(theme) {
 // ---------- start ----------
 
 for (const profession of rules.professions) {
-  const button = el("button", "", profession.name);
-  button.type = "button";
-  button.dataset.id = profession.id;
-  button.setAttribute("role", "radio");
-  button.addEventListener("click", () => {
-    professionId = profession.id;
-    writeLocal(`${PLUGIN}/profession`, professionId);
-    lastGather = null;
-    setStatus("");
-    render();
-  });
-  tabs.append(button);
+  const option = el("option", "", profession.name);
+  option.value = profession.id;
+  professionSelect.append(option);
 }
+professionSelect.addEventListener("change", () => {
+  professionId = professionSelect.value;
+  writeLocal(`${PLUGIN}/profession`, professionId);
+  lastGather = null;
+  setStatus("");
+  render();
+});
 
 checkInput.max = rules.checkDie;
+if (rules.rollCheckForYou) {
+  checkInput.placeholder = "roll for me";
+  $("check-label").append(" ", el("small", "", "(optional)"));
+} else {
+  checkInput.placeholder = "your roll";
+}
 $("gather").addEventListener("click", gather);
 checkInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") gather();

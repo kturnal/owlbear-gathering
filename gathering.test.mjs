@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { applyYield, bandFor, cryptoRandomInt, resolveGather, rollGather } from "./gathering.js";
+import { applyYield, bandFor, cryptoRandomInt, resolveGather, rollGather, undoLatest } from "./gathering.js";
 
 const rules = JSON.parse(readFileSync(new URL("./rules.json", import.meta.url), "utf8"));
 
@@ -93,4 +93,43 @@ test("every profession names its three materials", () => {
       assert.ok(profession[key], `${profession.id ?? "profession"} is missing ${key}`);
     }
   }
+});
+
+test("undo removes the latest gather and takes back its skill", () => {
+  const record = {
+    name: "Daldun",
+    skills: { mining: 56, fishing: 4 },
+    log: [
+      { t: 2, p: "mining", c: 90, d: [4, 2, 2, 4, 4], s: 56, i: 16 },
+      { t: 1, p: "mining", c: 95, d: [2, 1, 3, 2, 1], s: 40, i: 9 },
+    ],
+  };
+  const first = undoLatest(rules, record);
+  assert.equal(first.skillIncrease, 16);
+  assert.deepEqual(first.record.skills, { mining: 40, fishing: 4 });
+  assert.equal(first.record.log.length, 1);
+  assert.equal(record.log.length, 2, "the original record is left alone");
+
+  const second = undoLatest(rules, first.record);
+  assert.equal(second.record.skills.mining, 31);
+  assert.equal(second.record.log.length, 0);
+  assert.equal(undoLatest(rules, second.record), null);
+});
+
+test("undo works out older entries from their dice and never goes below 0", () => {
+  const record = { skills: { mining: 3 }, log: [{ t: 1, p: "mining", c: 50, d: [2, 4, 1] }] };
+  const undone = undoLatest(rules, record);
+  assert.equal(undone.skillIncrease, 7);
+  assert.equal(undone.record.skills.mining, 0);
+});
+
+test("an unreadable entry is removed without touching the skill", () => {
+  const record = { skills: { mining: 20 }, log: [{ t: 1, p: "mining", c: 50, d: [9] }] };
+  const undone = undoLatest(rules, record);
+  assert.equal(undone.record.skills.mining, 20);
+  assert.equal(undone.record.log.length, 0);
+});
+
+test("rolling the d100 for the player is a switch in rules.json", () => {
+  assert.equal(typeof rules.rollCheckForYou, "boolean");
 });

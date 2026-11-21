@@ -62,3 +62,32 @@ export function cryptoRandomInt(n) {
   } while (buffer[0] >= limit);
   return buffer[0] % n;
 }
+
+/**
+ * Take back a player's latest gather: drop it from their log and lower that profession's skill by
+ * what the gather added (never below 0). `record` is { skills: { id: n }, log: [newest, ...] }.
+ * Returns { record, entry, skillIncrease } with a new record, or null when there is nothing to undo.
+ */
+export function undoLatest(rules, record) {
+  const [entry, ...rest] = record.log;
+  if (!entry) return null;
+  // New entries carry what they added; older ones are worked out again from their dice.
+  let skillIncrease = Number.isInteger(entry.i) ? entry.i : null;
+  if (skillIncrease === null) {
+    try {
+      skillIncrease = resolveGather(rules, entry.c, entry.d).skillIncrease;
+    } catch {
+      skillIncrease = 0; // Unreadable entry: remove it, leave the skill alone.
+    }
+  }
+  const current = record.skills[entry.p] ?? 0;
+  return {
+    record: {
+      ...record,
+      skills: { ...record.skills, [entry.p]: Math.max(0, current - skillIncrease) },
+      log: rest,
+    },
+    entry,
+    skillIncrease,
+  };
+}
